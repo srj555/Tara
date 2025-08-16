@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="blossom">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tara — Little Star</title>
+  <meta name="description" content="A playful, animated, single-page baby resume for Tara with themes, floating nav, and PDF export." />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <style>
+    /* =========================
+       THEME TOKENS
+       ========================= */
+    :root{
+      --wrap:1080px; --radius:20px;
+
+      /* baseline (overridden by themes) */
+      --bg:#0e1420; --ink:#e6f0ff; --muted:#aac2ff;
+      --brand1:#3b82f6; --brand2:#6ee7ff;
+      --glass:rgba(255,255,255,.06); --ring:rgba(110,231,255,.45);
+      --g-radial:#173356; --g-top:#0b1220; --g-bottom:#0e1420;
+      --card-bd: rgba(255,255,255,.08);
+      --tag-bd: rgba(255,255,255,.18);
+    }
+    /* Ocean (metallic blue) */
+    html[data-theme="ocean"]{
+      --bg:#0e1420; --ink:#e6f0ff; --muted:#aac2ff;
+      --brand1:#3b82f6; --brand2:#6ee7ff;
+      --glass:rgba(255,255,255,.06); --ring:rgba(110,231,255,.45);
+      --g-radial:#173356; --g-top:#0b1220; --g-bottom:#0e1420;
+      --card-bd: rgba(255,255,255,.07);
+      --tag-bd: rgba(255,255,255,.18);
+      --header-a: rgba(59,130,246,.25); --header-b: rgba(110,231,255,.12);
+    }
+    /* Mustard */
+    html[data-theme="mustard"]{
+      --bg:#12100a; --ink:#fffaf0; --muted:#f5e6b5;
+      --brand1:#f59e0b; --brand2:#facc15;
+      --glass:rgba(250,204,21,.12); --ring:rgba(250,204,21,.45);
+      --g-radial:#3b2f05; --g-top:#1c1706; --g-bottom:#12100a;
+      --card-bd: rgba(250, 204, 21, .35); --tag-bd: rgba(250,204,21,.45);
+      --header-a: rgba(245,158,11,.30); --header-b: rgba(250,204,21,.22);
+    }
+    /* Noir */
+    html[data-theme="noir"]{
+      --bg:#000; --ink:#fff; --muted:#d0d0d0;
+      --brand1:#fff; --brand2:#bfbfbf;
+      --glass:rgba(255,255,255,.08); --ring:rgba(255,255,255,.35);
+      --g-radial:#000; --g-top:#000; --g-bottom:#000;
+      --card-bd: rgba(255,255,255,.12); --tag-bd: rgba(255,255,255,.25);
+      --header-a: rgba(255,255,255,.10); --header-b: rgba(255,255,255,.06);
+    }
+    /* Paper */
+    html[data-theme="paper"]{
+      --bg:#ffffff; --ink:#0b0b0b; --muted:#343434;
+      --brand1:#0b0b0b; --brand2:#5a5a5a;
+      --glass:#f3f3f3; --ring:#9a9a9a;
+      --g-radial:#ffffff; --g-top:#ffffff; --g-bottom:#ffffff;
+      --card-bd:#dcdcdc; --tag-bd:#cfcfcf;
+      --header-a:#f2f2f2; --header-b:#eaeaea;
+    }
+    /* Cyber */
+    html[data-theme="cyber"]{
+      --bg:#06141a; --ink:#eaffff; --muted:#b8f7ff;
+      --brand1:#22d3ee; --brand2:#67e8f9;
+      --glass:rgba(34,211,238,.15); --ring:rgba(103,232,249,.45);
+      --g-radial:#0a2a33; --g-top:#071c22; --g-bottom:#06141a;
+      --card-bd: rgba(34, 211, 238, .22); --tag-bd: rgba(103,232,249,.35);
+      --header-a: rgba(34,211,238,.28); --header-b: rgba(103,232,249,.18);
+    }
+    /* Blossom (soft rose & lavender) — default */
+    html[data-theme="blossom"]{
+      --bg:#120e14; --ink:#fff6fb; --muted:#ffd6ea;
+      --brand1:#ef5da8; --brand2:#b794f6;
+      --glass:rgba(255,255,255,.08); --ring:rgba(239,93,168,.45);
+      --g-radial:#2a1b33; --g-top:#1b1221; --g-bottom:#120e14;
+      --card-bd: rgba(255,255,255,.10); --tag-bd: rgba(255,255,255,.26);
+      --header-a: rgba(239,93,168,.28); --header-b: rgba(183,148,246,.18);
+    }
+
+    /* ===== Base ===== */
+    *{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth}
+    body{
+      background:
+        radial-gradient(1200px 800px at 80% -10%, var(--g-radial), transparent 60%),
+        linear-gradient(180deg,var(--g-top) 0%, var(--g-top) 40%, var(--g-bottom) 100%);
+      color:var(--ink);
+      font-family:Inter,system-ui,Segoe UI,Roboto,Ubuntu,Arial,sans-serif;
+      transition: background 300ms ease, color 200ms ease;
+      overflow-x:hidden;
+    }
+    a{color:var(--brand2);text-decoration:none}
+    a:hover{text-decoration:underline}
+    .wrap{max-width:var(--wrap);margin:auto;padding:24px}
+
+    /* ===== Header / Hero ===== */
+    header{
+      position:relative;border-radius:24px;overflow:hidden;margin:8px 0 20px;
+      background:linear-gradient(135deg, var(--header-a), var(--header-b));
+      box-shadow: 0 10px 40px rgba(0,0,0,.35), inset 0 0 0 1px var(--card-bd);
+      isolation:isolate;
+    }
+    .hgrid{
+      display:grid;gap:24px;padding:28px;
+      grid-template-columns:1.2fr .8fr;grid-template-areas:"id avatar";align-items:center;
+    }
+    .id{grid-area:id}
+    .id h1{font-size:clamp(28px, 3.6vw, 52px); margin-bottom:6px; line-height:1.05}
+    .tagline{color:var(--muted);margin-bottom:8px}
+    .tags{display:flex;flex-wrap:wrap; gap:8px}
+    .tag{display:inline-block;padding:6px 10px;border-radius:999px;
+      background:linear-gradient(120deg,var(--header-a),var(--header-b));
+      border:1px solid var(--tag-bd);font-weight:700;color:var(--ink)}
+    .divider{height:1px;background:linear-gradient(90deg, transparent, rgba(255,255,255,.12), transparent);margin:14px 0}
+    .meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;font-size:14px;color:var(--muted)}
+    .chip{
+      display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid var(--card-bd);
+      border-radius:999px;background:var(--glass);color:var(--ink) !important;
+    }
+
+    .avatar{grid-area:avatar;display:flex;justify-content:center;position:relative}
+    .avatar img{
+      width:240px;height:240px;object-fit:cover;border-radius:50%;
+      border:3px solid var(--brand1);box-shadow:0 0 20px var(--ring);
+      animation:glow 4s ease-in-out infinite alternate;background:linear-gradient(45deg, var(--header-a), var(--header-b));
+    }
+    @keyframes glow{from{box-shadow:0 0 12px var(--brand1)} to{box-shadow:0 0 24px var(--brand2)}}
+
+    /* header sweep (subtle) */
+    header::after{
+      content:""; position:absolute; inset:-30% -40% auto auto;
+      width:140%; height:140%;
+      background:linear-gradient(115deg, transparent 40%, rgba(255,255,255,.12) 50%, transparent 60%);
+      transform:translateX(-120%) rotate(5deg);
+      pointer-events:none; mix-blend-mode:soft-light;
+      animation: sweep 7s ease-in-out infinite;
+    }
+    @keyframes sweep{0%{transform:translateX(-120%) rotate(5deg)}8%{transform:translateX(10%) rotate(5deg)}100%{transform:translateX(10%) rotate(5deg)}}
+
+    /* ===== Sections ===== */
+    .section{
+      margin:26px 0;padding:22px;border-radius:var(--radius);
+      background-color:rgba(255,255,255,.04);border:1px solid var(--card-bd);
+      box-shadow:0 10px 30px rgba(0,0,0,.25);
+      position:relative;
+    }
+    .section h2{margin:0 0 10px;font-size:clamp(18px,2.2vw,26px)}
+    .hint{color:var(--muted); font-size:13px; margin:0 0 10px}
+    .revealable{opacity:0; transform:translateY(12px) scale(.995)}
+    .reveal{opacity:1; transform:none; transition: opacity .7s cubic-bezier(.2,.8,.2,1), transform .7s cubic-bezier(.2,.8,.2,1)}
+
+    /* Timeline */
+    .timeline{position:relative;padding-left:24px}
+    .timeline:before{content:"";position:absolute;left:8px;top:0;bottom:0;width:2px;background:linear-gradient(180deg, var(--ring), transparent)}
+    .item{position:relative;padding:12px 12px 12px 18px;border-radius:12px;border:1px solid var(--card-bd);background:rgba(255,255,255,.03);margin:10px 0}
+    .item:before{content:"";position:absolute;left:-11px;top:18px;width:10px;height:10px;border-radius:50%;background:var(--brand2);box-shadow:0 0 0 4px rgba(255,255,255,.12)}
+    .pill{display:inline-block;margin-left:8px;padding:4px 8px;border-radius:999px;background:rgba(255,255,255,.10);border:1px solid var(--tag-bd);font-size:12px}
+
+    /* Cards / badges */
+    .card{background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.02));border:1px solid var(--card-bd);border-radius:16px;padding:14px;margin-bottom:14px;break-inside:avoid}
+    .card h3{margin:0 0 8px;font-size:18px}
+    .kbadges{display:flex;flex-wrap:wrap;gap:8px}
+    .kbadges .b{font-size:12px;border:1px dashed var(--card-bd);padding:6px 8px;border-radius:10px;background:rgba(255,255,255,.04);animation:pulse 5s ease-in-out infinite}
+    @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+
+    .gridcards{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}
+    .gridcards>.card{grid-column:span 6}
+
+    .gallery{display:grid;grid-template-columns:repeat(12,1fr);gap:10px}
+    .photo{grid-column:span 4; aspect-ratio:1/1; border-radius:14px; overflow:hidden; border:1px solid var(--card-bd); background:rgba(255,255,255,.06); position:relative}
+    .photo img{width:100%; height:100%; object-fit:cover; display:block}
+    .photo .ph{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:42px; opacity:.6}
+
+    .cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:14px}
+    .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:12px;border:1px solid var(--card-bd);background:linear-gradient(180deg, var(--header-a), var(--header-b));font-weight:600}
+    .btn:active{transform:translateY(1px)}
+    .ghost{background:rgba(255,255,255,.04)}
+    .footer{opacity:.75;font-size:12px;text-align:center;margin:18px 0}
+
+    /* ===== Floating side nav ===== */
+    .side-rail{
+      position:fixed; right:18px; bottom:86px; z-index:60;
+      display:flex; flex-direction:column; gap:10px;
+    }
+    .rail-btn{
+      display:flex; align-items:center; justify-content:center;
+      width:42px; height:42px; border-radius:12px; border:1px solid var(--card-bd);
+      background:linear-gradient(180deg, var(--header-a), var(--header-b)); color:var(--ink);
+      text-decoration:none; font-size:18px; box-shadow:0 6px 18px rgba(0,0,0,.3);
+    }
+    .rail-btn span{position:absolute; right:52px; white-space:nowrap; pointer-events:none;
+      opacity:0; transform:translateX(6px); transition:all .2s ease; font-size:12px;
+      background:rgba(0,0,0,.25); border:1px solid var(--card-bd); padding:6px 8px; border-radius:8px;}
+    .rail-btn:hover span{opacity:1; transform:none}
+
+    /* Theme switcher FAB */
+    .theme-toggle{
+      position:fixed; right:18px; bottom:18px; z-index:70;
+      display:flex; gap:10px; align-items:center;
+    }
+    .theme-btn{
+      border:1px solid var(--card-bd);
+      background:linear-gradient(180deg, var(--header-a), var(--header-b));
+      color:var(--ink); padding:10px 12px; border-radius:12px; font-weight:700; cursor:pointer;
+      box-shadow:0 6px 18px rgba(0,0,0,.25); position:relative;
+    }
+    .theme-tray{
+      display:none; gap:8px; padding:8px; border-radius:12px; backdrop-filter:blur(8px);
+      border:1px solid var(--card-bd); background:rgba(0,0,0,.25);
+    }
+    .theme-toggle.open .theme-tray{ display:flex; }
+    .swatch{
+      width:28px; height:28px; border-radius:8px; cursor:pointer; border:2px solid rgba(255,255,255,.35);
+      box-shadow:0 4px 14px rgba(0,0,0,.25);
+    }
+    .swatch[data-theme="blossom"]{background:linear-gradient(45deg,#ef5da8,#b794f6)}
+    .swatch[data-theme="ocean"]{background:linear-gradient(45deg,#3b82f6,#6ee7ff)}
+    .swatch[data-theme="mustard"]{background:linear-gradient(45deg,#f59e0b,#facc15)}
+    .swatch[data-theme="noir"]{background:linear-gradient(45deg,#000,#2b2b2b)}
+    .swatch[data-theme="paper"]{background:linear-gradient(45deg,#fff,#e5e5e5);border-color:#999}
+    .swatch[data-theme="cyber"]{background:linear-gradient(45deg,#22d3ee,#67e8f9)}
+
+    /* Responsive */
+    @media (max-width:900px){
+      .hgrid{grid-template-columns:1fr;grid-template-areas:"avatar" "id";text-align:center}
+      .avatar img{width:140px;height:140px}
+      .meta{grid-template-columns:1fr;justify-items:center}
+      .cta{justify-content:center}
+      .gridcards>.card{grid-column:span 12}
+      .gallery .photo{grid-column:span 6}
+      .rail-btn span{display:none}
+      .side-rail{right:12px}
+      .theme-toggle{right:12px}
+    }
+
+    /* ===== PRINT / PDF ===== */
+    @page{ size:A4; margin:0; }
+    @media print{
+      html, body{
+        background:var(--bg) !important;
+        -webkit-print-color-adjust:exact; print-color-adjust:exact;
+        color:var(--ink) !important;
+      }
+      body::before{
+        content:""; position:fixed; inset:0; z-index:-1;
+        background:
+          radial-gradient(1200px 800px at 80% -10%, var(--g-radial), transparent 60%),
+          linear-gradient(180deg,var(--g-top) 0%, var(--g-top) 40%, var(--g-bottom) 100%);
+      }
+      .wrap{max-width:none; width:210mm; margin:0; padding:12mm 12mm 10mm; line-height:1.24;}
+      header{border-radius:0; box-shadow:none; border:0; margin:-12mm -12mm 6mm; padding:14mm 12mm 10mm;
+             background:linear-gradient(135deg, var(--header-a), var(--header-b));}
+      .hgrid{padding:0; gap:6mm; grid-template-columns:1fr; grid-template-areas:"avatar" "id";
+             justify-items:center; text-align:center;}
+      .id{ max-width:160mm; }
+      .id h1{ font-size:22pt }
+      .tags{justify-content:center}
+      .id .tag{ padding:4px 8px; margin:3px 4px; display:inline-block; border-color:var(--tag-bd) }
+      .meta{ display:flex; flex-wrap:wrap; gap:4mm; justify-content:center; font-size:10pt; color:var(--muted) }
+      .divider{ margin:4mm 0; background:rgba(255,255,255,.18) }
+      .avatar img{ width:46mm; height:46mm; border-radius:50%; border:2px solid var(--brand2); box-shadow:0 0 10px rgba(110,231,255,.35); animation:none; }
+
+      .section{ background:rgba(255,255,255,.04); border:1px solid var(--card-bd); box-shadow:none; margin:4mm 0; padding:4mm; border-radius:8px; break-inside:avoid; }
+      .section h2{ font-size:12pt; margin-bottom:3mm }
+      .timeline{ padding-left:6mm }
+      .timeline:before{ left:0; background:linear-gradient(180deg, var(--ring), transparent) }
+      .item{ opacity:1; transform:none; background:transparent; border:0; margin:2mm 0; padding:0 0 0 4mm }
+      .item:before{ left:-6px; top:6px; box-shadow:0 0 0 3px rgba(255,255,255,.12) }
+      .gridcards, .gallery{ gap:4mm }
+      .gridcards>.card{ grid-column:span 6 }
+      .photo{break-inside:avoid}
+      .card{ margin-bottom:3mm; padding:3mm }
+      .kbadges .b{ background:rgba(255,255,255,.05); border-color:var(--card-bd) }
+      .pill{ background:rgba(255,255,255,.12); border-color:var(--tag-bd) }
+      .cta,.ghost,.btn,.theme-toggle,.side-rail{ display:none !important }
+      a{ text-decoration:none; color:var(--ink) }
+    }
+
+    /* Reduce motion */
+    @media (prefers-reduced-motion: reduce){
+      *{animation:none!important; transition:none!important}
+      header::after{display:none!important}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <!-- HERO -->
+    <header class="revealable" id="top">
+      <div class="hgrid">
+        <div class="id">
+          <h1>Tara</h1>
+          <div class="tagline">Little Star • Born on Nov 4, 2023</div>
+          <div class="tags">
+            <span class="tag" id="ageTag">Age: calculating…</span>
+            <span class="tag">Giggles Expert</span>
+            <span class="tag">Snack Enthusiast</span>
+            <span class="tag">Story-Time Champ</span>
+          </div>
+          <div class="divider"></div>
+          <div class="meta">
+            <div><span class="chip">📍 Home: Dubai, UAE</span></div>
+            <div><span class="chip">🧸 Nicknames: T, Tiny Star</span></div>
+            <div><span class="chip">👨‍👩‍👧 Proud Parents: You ❤️</span></div>
+            <div><span class="chip">📅 Birthday: 04 Nov 2023</span></div>
+          </div>
+          <div class="cta" style="margin-top:14px">
+            <button class="btn" onclick="savePdf()">🖨️ Save as PDF</button>
+            <a class="btn ghost" href="#milestones">🪄 Milestones</a>
+            <a class="btn ghost" href="#favorites">🎶 Favorites</a>
+          </div>
+        </div>
+        <div class="avatar">
+          <img src="./tara.png" alt="Tara">
+        </div>
+      </div>
+    </header>
+
+    <!-- ABOUT -->
+    <section class="section revealable" id="about">
+      <h2>About Tara</h2>
+      <p class="hint">A tiny human with a giant personality—curious eyes, contagious giggles, and a love for cuddles.</p>
+      <div class="card">
+        <h3 style="margin:0 0 8px">Personality Snapshot</h3>
+        <div class="kbadges">
+          <span class="b">Curious & Observant</span>
+          <span class="b">Music Lover</span>
+          <span class="b">Book Flipper</span>
+          <span class="b">Cuddle Collector</span>
+          <span class="b">Nap Negotiator</span>
+        </div>
+      </div>
+      <div class="card">
+        <h3 style="margin:0 0 8px">Daily Joys</h3>
+        <ul style="margin-left:18px; line-height:1.7">
+          <li>Morning babbles over breakfast.</li>
+          <li>Dancing to favorite tunes with family.</li>
+          <li>Pointing at everything that moves (birds = best!).</li>
+          <li>Bedtime stories—same book again? absolutely.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- MILESTONES -->
+    <section class="section revealable" id="milestones">
+      <h2>Milestones</h2>
+      <p class="hint">Add your exact dates as memories happen—this timeline grows with Tara.</p>
+      <div class="timeline">
+        <div class="item revealable">
+          <strong>Hello, world!</strong> — Tara arrives 🎉
+          <span class="pill">Nov 4, 2023</span>
+        </div>
+        <div class="item revealable">
+          <strong>First smile</strong> — that gummy grin melts hearts
+          <span class="pill">~ 2–3 months</span>
+        </div>
+        <div class="item revealable">
+          <strong>Roll over</strong> — tummy-time pay-off!
+          <span class="pill">~ 4–5 months</span>
+        </div>
+        <div class="item revealable">
+          <strong>Crawling & cruising</strong> — the grand tour of the living room
+          <span class="pill">~ 7–11 months</span>
+        </div>
+        <div class="item revealable">
+          <strong>First birthday</strong> — cake, confetti, cuddles
+          <span class="pill">Nov 4, 2024</span>
+        </div>
+        <div class="item revealable">
+          <strong>First words / steps</strong> — add yours here 💬👣
+          <span class="pill">add date</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAVORITES -->
+    <section class="section revealable" id="favorites">
+      <h2>Favorites</h2>
+      <div class="gridcards">
+        <div class="card revealable">
+          <h3>Things</h3>
+          <div class="kbadges">
+            <span class="b">Stuffed Bear</span><span class="b">Stacking Cups</span><span class="b">Picture Books</span>
+            <span class="b">Soft Blanket</span><span class="b">Musical Toys</span>
+          </div>
+        </div>
+        <div class="card revealable">
+          <h3>Activities</h3>
+          <div class="kbadges">
+            <span class="b">Peekaboo</span><span class="b">Clap along songs</span><span class="b">Playground swing</span>
+            <span class="b">Point & Name</span><span class="b">Dance breaks</span>
+          </div>
+        </div>
+        <div class="card revealable">
+          <h3>Tastes</h3>
+          <div class="kbadges">
+            <span class="b">Banana bites</span><span class="b">Yogurt</span><span class="b">Soft rice</span>
+            <span class="b">Mango puree</span>
+          </div>
+        </div>
+        <div class="card revealable">
+          <h3>Soundtrack</h3>
+          <div class="kbadges">
+            <span class="b">Lullabies</span><span class="b">Nursery Rhymes</span><span class="b">Clap songs</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- GALLERY -->
+    <section class="section revealable" id="gallery">
+      <h2>Little Moments</h2>
+      <p class="hint">Replace the file names with your own photos to fill this grid.</p>
+      <div class="gallery">
+        <div class="photo"><img src="./tara1.png" alt="Tara photo 1" onerror="this.remove();this.parentElement.innerHTML='<div class=&quot;ph&quot;>🍼</div>'"></div>
+        <div class="photo"><img src="./tara2.png" alt="Tara photo 2" onerror="this.remove();this.parentElement.innerHTML='<div class=&quot;ph&quot;>🎀</div>'"></div>
+        <div class="photo"><img src="./tara3.png" alt="Tara photo 3" onerror="this.remove();this.parentElement.innerHTML='<div class=&quot;ph&quot;>🎈</div>'"></div>
+        <div class="photo"><img src="./tara4.png" alt="Tara photo 4" onerror="this.remove();this.parentElement.innerHTML='<div class=&quot;ph&quot;>⭐</div>'"></div>
+        <div class="photo"><img src="./tara5.png" alt="Tara photo 5" onerror="this.remove();this.parentElement.innerHTML='<div class=&quot;ph&quot;>🧸</div>'"></div>
+        <div class="photo"><img src="./tara6.png" alt="Tara photo 6" onerror="this.remove();this.parentElement.innerHTML='<div class=&quot;ph&quot;>🌙</div>'"></div>
+      </div>
+    </section>
+
+    <!-- CONTACT / GUESTBOOK -->
+    <section class="section revealable" id="contact">
+      <h2>Say Hello</h2>
+      <p>Leave a note for Tara’s memory box or reach out to the family.</p>
+      <div class="cta">
+        <a class="btn" href="tel:+971558280133">📞 Parents</a>
+        <a class="btn" href="mailto:sreejithmailz@gmail.com">✉️ Email</a>
+        <a class="btn ghost" href="#top" title="Back to top">⬆️ Top</a>
+      </div>
+    </section>
+
+    <div class="footer">© <span id="yr"></span> Tara’s Family • Made with love</div>
+  </div>
+
+  <!-- FLOATING SIDE NAV -->
+  <nav class="side-rail" aria-label="Section shortcuts">
+    <a class="rail-btn" href="#about" title="About"><span>About</span>🧒</a>
+    <a class="rail-btn" href="#milestones" title="Milestones"><span>Milestones</span>🪄</a>
+    <a class="rail-btn" href="#favorites" title="Favorites"><span>Favorites</span>🎶</a>
+    <a class="rail-btn" href="#gallery" title="Photos"><span>Photos</span>📸</a>
+    <a class="rail-btn" href="#contact" title="Contact"><span>Contact</span>✉️</a>
+  </nav>
+
+  <!-- THEME SWITCHER -->
+  <div class="theme-toggle" id="themeToggle" aria-live="polite">
+    <button class="theme-btn" id="themeBtn" aria-expanded="false" aria-controls="themeTray">🎨 Theme</button>
+    <div class="theme-tray" id="themeTray" role="menu" aria-label="Theme picker">
+      <div class="swatch" data-theme="blossom" title="Blossom (soft)" role="menuitem"></div>
+      <div class="swatch" data-theme="ocean"   title="Ocean (Metallic Blue)" role="menuitem"></div>
+      <div class="swatch" data-theme="mustard" title="Mustard" role="menuitem"></div>
+      <div class="swatch" data-theme="noir"    title="Noir (Black)" role="menuitem"></div>
+      <div class="swatch" data-theme="paper"   title="Paper (White)" role="menuitem"></div>
+      <div class="swatch" data-theme="cyber"   title="Cyber (Neon Cyan)" role="menuitem"></div>
+    </div>
+  </div>
+
+  <script>
+    // Reveal on scroll
+    const io = new IntersectionObserver((entries)=>{
+      entries.forEach(e=>{
+        if(e.isIntersecting){
+          e.target.classList.add('reveal');
+          io.unobserve(e.target);
+        }
+      });
+    }, {threshold:.18});
+    document.querySelectorAll('.revealable, .item').forEach(el=>io.observe(el));
+    document.getElementById('yr').textContent = new Date().getFullYear();
+
+    // Live age chip
+    (function(){
+      const born = new Date('2023-11-04T00:00:00');
+      const tEl = document.getElementById('ageTag');
+      function fmtAge(ms){
+        const d = ms / (1000*60*60*24);
+        const years = Math.floor(d/365.25);
+        const months = Math.floor((d % 365.25)/30.44);
+        if(years>0) return `${years}y ${months}m`;
+        return `${months} months`;
+      }
+      function tick(){
+        const now = new Date();
+        tEl.textContent = 'Age: ' + fmtAge(now - born);
+      }
+      tick(); setInterval(tick, 60*60*1000);
+    })();
+
+    // PDF helper
+    function savePdf(){
+      document.body.classList.add('pdf');
+      setTimeout(()=>{ window.print(); setTimeout(()=>document.body.classList.remove('pdf'), 250); }, 40);
+    }
+    if (window.matchMedia) {
+      const mq = window.matchMedia('print');
+      if (mq && mq.addEventListener) {
+        mq.addEventListener('change', m => { if(!m.matches) document.body.classList.remove('pdf'); });
+      }
+    }
+
+    // Theme persistence + tray
+    const htmlEl = document.documentElement;
+    const KEY = 'tara_theme';
+    const saved = localStorage.getItem(KEY);
+    if(saved){ htmlEl.setAttribute('data-theme', saved); }
+
+    const toggle = document.getElementById('themeToggle');
+    const btn = document.getElementById('themeBtn');
+    const tray = document.getElementById('themeTray');
+
+    btn.addEventListener('click', ()=>{
+      const open = toggle.classList.toggle('open');
+      btn.setAttribute('aria-expanded', open ? 'true':'false');
+    });
+
+    tray.querySelectorAll('.swatch').forEach(s=>{
+      s.addEventListener('click', ()=>{
+        const t = s.getAttribute('data-theme');
+        htmlEl.setAttribute('data-theme', t);
+        localStorage.setItem(KEY, t);
+        toggle.classList.remove('open');
+        btn.setAttribute('aria-expanded','false');
+      });
+    });
+
+    // Close on outside click / Esc
+    document.addEventListener('click', (e)=>{
+      if(!toggle.contains(e.target)){
+        toggle.classList.remove('open');
+        btn.setAttribute('aria-expanded','false');
+      }
+    });
+    document.addEventListener('keydown', (e)=>{
+      if(e.key === 'Escape'){
+        toggle.classList.remove('open');
+        btn.setAttribute('aria-expanded','false');
+      }
+    });
+  </script>
+</body>
+</html>
